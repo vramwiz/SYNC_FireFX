@@ -1,0 +1,48 @@
+# SYNC_FireFX 作業ノート
+
+## プロジェクト
+
+- `D:\DelphiProg\MyApp\SYNC_FireFX`。Delphi プロジェクト名は `SYNC_FireFX`、登録名は「火演出」、ラベルは「SYNC」。
+- 仕様書の原文は `docs/SPECIFICATION.md`。作業とビルドの規則は WeatherFX の `note.md` から本プロジェクトに適用できる箇所を引き継いだ。
+- Delphi 37.0 / Win64。IDE で開くファイルは `SYNC_FireFX.dproj`。本番はメディア入力用の `SYNC_FireFX.auf2` 1本。開発版の表示バージョンは v0.1.0。
+- SDK の型、共通登録、プロジェクト設定とライセンスを継承した。編集APIを型付きにして、登録項目の配列を128枠へ拡張した。SDK のレコードの位置は公式ヘッダーに合わせる。
+
+## ビルド
+
+```powershell
+cmd /c 'call "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat" && msbuild SYNC_FireFX.dproj /t:Rebuild /p:Config=Debug /p:Platform=Win64'
+cmd /c 'call "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat" && msbuild SYNC_FireFX.dproj /t:Rebuild /p:Config=Release /p:Platform=Win64'
+```
+
+- 両構成の出力先は `C:\ProgramData\aviutl2\Plugin\SYNC_FireFX\`。継承したビルド後イベントが DLL を AUF2 へコピーし、元の DLL を削除する。Release では RSM も削除する。最終配置は Release。
+- DCU は `Win64\Debug\DCU` と `Win64\Release\DCU`。デバッガーホストは両構成ともコピー元の `D:\aviutl2_v2.1.16\aviutl2.exe`。
+- `FireFX_Shader.rc` で HLSL を AUF2 に格納する。シェーダーは最初のGPU描画時に一度コンパイルする。
+- 追加ユニットは DPR と DPROJ に両方登録する。開いている DPR / DPROJ を外部で更新した場合は IDE で開き直す。
+
+## 描画
+
+- `FireFX_Settings` はパラメータ、範囲、12プリセット、`FireFX_Parameters` は折りたたみ項目とプリセット適用を担当する。選択セレクタの値は描画に使用せず、ボタンで個別の値を編集APIへ設定する。
+- X、Y、Z、拡大率、透明度は AviUtl2 の基底オブジェクトで調整する。火演出はシーン中央を原点とする画像を生成し、配置はホストの標準描画に任せる。
+- `FireFX_Scene` は火元を疑似3D空間へ配置し、奥行順に炎を作る。風、揺らぎ、発光、干渉面に沿う炎、煙、火の粉、赤熱を時刻から求める。物体との干渉は各炎の進行方向と底面の交点を使う近似。
+- `FireFX_Field` は CPU 描画と GPU へ渡す定数の配置を管理する。GPU は `FireFX_GPU` と `Source/Shaders/FireFX.hlsl` で描画する。シェーダー API を呼べないときは CPU で描画し、負荷の高い炎や煙だけ評価解像度を下げる。
+- 陽炎は GPU で取得できた背景テクスチャを局所的にずらして合成する。2Dの標準描画を対象とする。背景コピーに失敗する場面では陽炎を省略する。
+- 消火は `GetObjectTrackValue` で火力トラックを参照する。過去の描画順に依存しない。火力の変化方向を取得できない場面では、点火用の火花を抑制する。
+- 画像はシーン寸法で生成する。上限は一辺16384、全体33554432画素。
+
+## 検査
+
+```powershell
+& .\Tests\run_tests.ps1
+& .\Tests\run_tests.ps1 -Benchmark
+```
+
+- 本番 AUF2 の公開関数、設定、時系列の動作を検査する。D3D11 デバイス上でシェーダーを実行し、CPU との出力と背景サンプルを照合する。検査結果の PNG は `Win64\Verification` 以下に保存される。
+- SDK の ABI は [公式 SDK](https://spring-fragrance.mints.ne.jp/aviutl/) の2026年11月21日版を照合に使用。AviUtl2 本体での使用確認とコールバックの単体検査は別扱い。
+- 2026年11月24日、Win64 Debug / Release の Rebuild はどちらも警告0件・エラー0件。両構成の本番 AUF2 が、12プリセット、火力による点火と消火、シーク時の再現性、物体干渉、D3D11 の描画と背景屈折の検査に合格した。AviUtl2 と Delphi IDE の画面確認は未実施。
+- Release の1080p火災プリセットを検査EXEで測定した結果は、D3D11実機18.1 ms/フレーム（読み戻しを含む）、CPU代替180.5 ms/フレーム。ログは `Win64\BuildLogs`、プリセット見本は `Win64\Verification\Preview.png`。
+- 同日の仕様変更で火演出の「基本設定」グループを削除した。Debug / Release の Rebuild は警告0件・エラー0件。両構成で、登録項目からの削除、ホスト描画パラメータの維持、CPU / D3D11 描画を確認した。最終配置は Release。ログは `Win64\BuildLogs\BaseObject`。
+
+## setup
+
+- WeatherFX の `setup` をディレクトリごとコピーした。バッチ、PowerShell、README、カタログ JSON、既存 ZIP の5ファイルはコピー元と同じ。
+- 現在の setup は WeatherFX 用。火演出用の配布物を作成する場合は、別途 setup の設定を更新する。
