@@ -3,11 +3,11 @@
     [string]$XxhsumPath
 )
 
-# SYNC_AquaFX/setupを継承。既存のWeatherFX本番AUF2を梱包し、末尾バージョンのハッシュを更新する。
+# WeatherFXの配布スクリプトを継承。既存の火演出AUF2を梱包し、末尾バージョンのハッシュを更新する。
 # ビルド・ホスト起動・ネットワークへの公開は行わない。
 # Copyright (c) 2026 VRAMの魔術師 / SPDX-License-Identifier: GPL-3.0-only
 $ErrorActionPreference = 'Stop'
-$packageName = 'SYNC_WeatherFX'
+$packageName = 'SYNC_FireFX'
 $projectDir = Split-Path -Parent $PSScriptRoot
 if (-not $ReleaseDirectory) { $ReleaseDirectory = Join-Path $env:ProgramData "aviutl2\Plugin\$packageName" }
 $pluginName = "$packageName.auf2"
@@ -32,12 +32,10 @@ $tempBase = Join-Path $PSScriptRoot ('.release-' + [guid]::NewGuid().ToString('N
 $tempPlugin = "$tempBase-plugin.tmp"
 $tempZip = "$tempBase-zip.tmp"
 $tempCatalog = "$tempBase-catalog.tmp"
-$tempNotices = "$tempBase-notices.tmp"
-$tempReadme = "$tempBase-readme.tmp"
 $catalogBackup = "$tempBase-previous-catalog.tmp"
 
 Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
-$lock = [Threading.Mutex]::new($false, 'Local\VRAMWIZ.SYNC_WeatherFX.ReleaseZip')
+$lock = [Threading.Mutex]::new($false, "Local\VRAMWIZ.$packageName.ReleaseZip")
 $ownsLock = $false
 try {
     try { $ownsLock = $lock.WaitOne(0) }
@@ -58,13 +56,19 @@ try {
         throw 'The catalog GitHub source must match this repository and ZIP name.'
     }
     $copyEntry = @($entry.installer.install | Where-Object action -ceq 'copy')
+    $installPath = "{pluginsDir}/$packageName"
     if ($copyEntry.Count -ne 1 -or $copyEntry[0].from -cne "{tmp}/$packageName" -or
-        $copyEntry[0].to -cne "{pluginsDir}/$packageName") {
+        $copyEntry[0].to -cne $installPath) {
         throw 'The catalog install paths must match the ZIP root and plugin directory.'
+    }
+    $uninstallSteps = @($entry.installer.uninstall)
+    if ($uninstallSteps.Count -ne 1 -or $uninstallSteps[0].action -cne 'delete' -or
+        $uninstallSteps[0].path -cne $installPath) {
+        throw 'Uninstall must delete the installed plugin directory in exactly one step.'
     }
     if (@($entry.version).Count -eq 0) { throw 'The catalog must contain a release version.' }
     if ($entry.version[0].version -cne 'v1.0.0') {
-        throw 'The first public WeatherFX version must be v1.0.0.'
+        throw 'The first public FireFX version must be v1.0.0.'
     }
     $version = $catalog[0].version[-1]
     $releaseDate = [datetime]::MinValue
@@ -75,7 +79,7 @@ try {
             [Globalization.DateTimeStyles]::None, [ref]$releaseDate)) {
         throw 'The last catalog version must have a unique name and a valid yyyy-MM-dd release date.'
     }
-    $pluginEntry = @($version.file | Where-Object path -ceq "{pluginsDir}/$packageName/$pluginName")
+    $pluginEntry = @($version.file | Where-Object path -ceq "$installPath/$pluginName")
     if (@($version.file).Count -ne 1 -or $pluginEntry.Count -ne 1) {
         throw 'The last catalog version must list only the production AUF2 once.'
     }
@@ -86,6 +90,10 @@ try {
 
     # Hash the same AUF2 bytes that will go into the ZIP.
     Copy-Item -LiteralPath $pluginPath -Destination $tempPlugin
+    $productVersion = [Diagnostics.FileVersionInfo]::GetVersionInfo($tempPlugin).ProductVersion
+    if (-not $productVersion -or "v$productVersion" -cne $version.version) {
+        throw "AUF2 product version '$productVersion' does not match catalog version '$($version.version)'."
+    }
     $hashOutput = & $XxhsumPath -H128 --tag $tempPlugin
     if ($LASTEXITCODE -ne 0 -or ($hashOutput -join "`n") -notmatch ' = ([0-9a-f]{32})\s*\z') {
         throw 'Could not calculate the AUF2 XXH3-128 hash.'
@@ -94,29 +102,13 @@ try {
 
     $packageFiles = [ordered]@{
         $pluginName = $tempPlugin
-        'README.md' = $tempReadme
+        'README.md' = Join-Path $projectDir 'README.md'
         'LICENSE' = Join-Path $projectDir 'LICENSE'
-        'THIRD_PARTY_NOTICES.md' = $tempNotices
+        'THIRD_PARTY_NOTICES.md' = Join-Path $projectDir 'THIRD_PARTY_NOTICES.md'
         'ThirdParty/LICENSE.AviUtl2-SDK.txt' = Join-Path $projectDir 'ThirdParty\LICENSE.AviUtl2-SDK.txt'
     }
-    # 開発用と配布用で同じライセンス配置を使用する。
-    $notices = [IO.File]::ReadAllText((Join-Path $projectDir 'THIRD_PARTY_NOTICES.md'))
-    [IO.File]::WriteAllText($tempNotices, $notices, [Text.UTF8Encoding]::new($false))
-    # ルートREADMEを配布用にも使用する。画像はソース公開先を参照し、ZIP内の不足リンクを避ける。
-    $readme = [IO.File]::ReadAllText((Join-Path $projectDir 'README.md'))
-    $readme = $readme.Replace('](Sample/', "](https://raw.githubusercontent.com/vramwiz/$packageName/main/Sample/")
-    [IO.File]::WriteAllText($tempReadme, $readme, [Text.UTF8Encoding]::new($false))
     foreach ($file in $packageFiles.Values) {
         if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { throw "Package file not found: $file" }
-    }
-    # インストールした全ファイルをアンインストールでき、他の場所を消さないことを確認する。
-    $expectedPaths = @($packageFiles.Keys | ForEach-Object { "{pluginsDir}/$packageName/$_" })
-    $deleteEntries = @($entry.installer.uninstall)
-    $deletePaths = @($deleteEntries | Where-Object action -ceq 'delete' | ForEach-Object path)
-    if ($deleteEntries.Count -ne $expectedPaths.Count -or $deletePaths.Count -ne $expectedPaths.Count -or
-        @($deletePaths | Select-Object -Unique).Count -ne $expectedPaths.Count -or
-        @(Compare-Object $expectedPaths $deletePaths -CaseSensitive).Count -ne 0) {
-        throw 'The catalog uninstall paths must list every packaged file exactly once.'
     }
     $zip = [IO.Compression.ZipFile]::Open($tempZip, [IO.Compression.ZipArchiveMode]::Create)
     try {
@@ -152,7 +144,7 @@ try {
 finally {
     if ($ownsLock) { $lock.ReleaseMutex() }
     $lock.Dispose()
-    foreach ($tempPath in @($tempPlugin, $tempZip, $tempCatalog, $tempNotices, $tempReadme)) {
+    foreach ($tempPath in @($tempPlugin, $tempZip, $tempCatalog)) {
         [IO.File]::Delete($tempPath)
     }
 }

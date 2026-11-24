@@ -4,7 +4,7 @@
 
 - `D:\DelphiProg\MyApp\SYNC_FireFX`。Delphi プロジェクト名は `SYNC_FireFX`、登録名は「火演出」、ラベルは「SYNC」。
 - 仕様書の原文は `docs/SPECIFICATION.md`。作業とビルドの規則は WeatherFX の `note.md` から本プロジェクトに適用できる箇所を引き継いだ。
-- Delphi 37.0 / Win64。IDE で開くファイルは `SYNC_FireFX.dproj`。本番はメディア入力用の `SYNC_FireFX.auf2` 1本。開発版の表示バージョンは v0.1.0。
+- Delphi 37.0 / Win64。IDE で開くファイルは `SYNC_FireFX.dproj`。本番はメディア入力用の `SYNC_FireFX.auf2` 1本。初回リリースの表示バージョンと製品バージョンは v1.0.0。
 - SDK の型、共通登録、プロジェクト設定とライセンスを継承した。編集APIを型付きにして、登録項目の配列を128枠へ拡張した。SDK のレコードの位置は公式ヘッダーに合わせる。
 
 ## ビルド
@@ -44,5 +44,7 @@ cmd /c 'call "C:\Program Files (x86)\Embarcadero\Studio\37.0\bin\rsvars.bat" && 
 
 ## setup
 
-- WeatherFX の `setup` をディレクトリごとコピーした。バッチ、PowerShell、README、カタログ JSON、既存 ZIP の5ファイルはコピー元と同じ。
-- 現在の setup は WeatherFX 用。火演出用の配布物を作成する場合は、別途 setup の設定を更新する。
+- WeatherFX の配布バッチを継承した。`setup\make_release_zip.bat` で `SYNC_FireFX.zip` を生成し、`SYNC_FireFX.catalog.json` のハッシュを更新する。手順は `setup/README.md`。
+- カタログは v1.0.0 から開始する。インストールのコピー先は `{pluginsDir}/SYNC_FireFX`。アンインストールは同じフォルダを1工程で削除する。
+- 配布 ZIP の初回作成では xxHash 公式 v0.8.4 の Windows 版を使用した。取得した ZIP の SHA-256 は `58e3dcb7063eb3829418453702556cdb2b52e7c9082215fcd4e9135fabbd4ed9`。
+- v1.0.0 は Win64 Debug / Release とも警告0件・エラー0件で描画検査に合格した。配布 ZIP の5ファイル、AUF2 の XXH3-128 `fc9da8f2f94e14b309e2b46f6e1bcae8`、再実行時のカタログ不変を検証した。検査ログは `Win64\BuildLogs\v1.0.0`。カタログの公開日欄は `2026-11-24` に設定した。

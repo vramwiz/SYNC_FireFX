@@ -44,6 +44,12 @@
         <DCC_Namespace>System;Xml;Data;Datasnap;Web;Soap;Winapi;Vcl;$(DCC_Namespace)</DCC_Namespace>
         <DCC_UnitSearchPath>.\Source\Common;.\Source\Lib;.\Source\Lib\FilterTable;.\Source\Plugin\Filter;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <SanitizedProjectName>SYNC_FireFX</SanitizedProjectName>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_MajorVer>1</VerInfo_MajorVer>
+        <VerInfo_MinorVer>0</VerInfo_MinorVer>
+        <VerInfo_Release>0</VerInfo_Release>
+        <VerInfo_Build>0</VerInfo_Build>
+        <VerInfo_Keys>FileVersion=1.0.0.0;ProductName=SYNC_FireFX;ProductVersion=1.0.0;OriginalFilename=SYNC_FireFX.auf2</VerInfo_Keys>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_1)'!=''">
         <DCC_DebugDCUs>true</DCC_DebugDCUs>

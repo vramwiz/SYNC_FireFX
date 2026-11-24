@@ -1,10 +1,10 @@
 # 火演出（SYNC_FireFX）
 
-AviUtl2の「SYNC」に登録するメディアオブジェクトです。外部の画像や動画を使わず、炎、燃焼煙、火の粉、赤熱を描画します。対象環境は Windows 64bit / AviUtl2 v2.1.16以降です。
+AviUtl2の「SYNC」に登録するメディアオブジェクトです。外部の画像や動画を使わず、炎、燃焼煙、火の粉、赤熱を描画します。バージョンは v1.0.0、対象環境は Windows 64bit / AviUtl2 v2.1.16以降です。
 
 ## 使い方
 
-1. `SYNC_FireFX.auf2` を `C:\ProgramData\aviutl2\Plugin\SYNC_FireFX\` に置きます。
+1. `SYNC_FireFX.zip` を展開し、`SYNC_FireFX` フォルダを `C:\ProgramData\aviutl2\Plugin\` に置きます。
 2. レイヤー編集で「メディアオブジェクトを追加」から「火演出」を追加します。配置直後はろうそくの炎が表示されます。
 3. 「プリセット選択」で種類を選び、「設定」を押します。反映後は各項目を個別に調整できます。X、Y、Z、拡大率、透明度は AviUtl2 の基底オブジェクト側で調整します。
 

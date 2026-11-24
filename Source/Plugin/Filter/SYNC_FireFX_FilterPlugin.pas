@@ -211,7 +211,7 @@ begin
   if not TableInitialized then
   begin
     SetupPluginTable(FILTER_FLAG_VIDEO or FILTER_FLAG_INPUT or FILTER_FLAG_USERDATA,
-      FIRE_EFFECT_NAME, 'SYNC', '火演出 / SYNC_FireFX v0.1.0', ProcVideo, nil);
+      FIRE_EFFECT_NAME, 'SYNC', '火演出 / SYNC_FireFX v1.0.0', ProcVideo, nil);
     RegisterFireParameters;
     GetPluginTable^.Func_Create := CreateEffect;
     GetPluginTable^.Func_Destroy := DestroyEffect;
