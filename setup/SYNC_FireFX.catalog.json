@@ -3,7 +3,7 @@
         "id":  "VRAMWIZ.SYNC_FireFX",
         "name":  "火演出",
         "type":  "フィルタプラグイン",
-        "summary":  "12種類のプリセットで炎、煙、火の粉、赤熱を描画する AviUtl2 プラグイン",
+        "summary":  "12種類のプリセットで炎・煙・火の粉・赤熱を描画",
         "description":  "https://raw.githubusercontent.com/vramwiz/SYNC_FireFX/refs/heads/main/README.md",
         "author":  "VRAMの魔術師",
         "repoURL":  "https://github.com/vramwiz/SYNC_FireFX/",
