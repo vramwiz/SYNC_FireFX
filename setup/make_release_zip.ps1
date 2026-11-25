@@ -61,13 +61,10 @@ try {
         $copyEntry[0].to -cne $installPath) {
         throw 'The catalog install paths must match the ZIP root and plugin directory.'
     }
-    $uninstall = @($entry.installer.uninstall)
-    $packagedFiles = @("$packageName.auf2", 'README.md', 'LICENSE', 'THIRD_PARTY_NOTICES.md', 'ThirdParty/LICENSE.AviUtl2-SDK.txt')
-    $expectedPaths = @($packagedFiles | ForEach-Object { "{pluginsDir}/$packageName/$_" })
-    $deletePaths = @($uninstall | Where-Object action -ceq 'delete' | ForEach-Object path)
-    if ($uninstall.Count -ne $expectedPaths.Count -or $deletePaths.Count -ne $expectedPaths.Count -or
-        @(Compare-Object $expectedPaths $deletePaths -CaseSensitive).Count -ne 0) {
-        throw 'The catalog uninstall paths must list every installed file exactly once.'
+    $uninstallSteps = @($entry.installer.uninstall)
+    if ($uninstallSteps.Count -ne 1 -or $uninstallSteps[0].action -cne 'delete' -or
+        $uninstallSteps[0].path -cne $installPath) {
+        throw 'Uninstall must delete the installed plugin directory in exactly one step.'
     }
     if (@($entry.version).Count -eq 0) { throw 'The catalog must contain a release version.' }
     if ($entry.version[0].version -cne 'v1.0.0') {
