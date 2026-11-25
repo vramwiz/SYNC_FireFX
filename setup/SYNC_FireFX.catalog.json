@@ -54,11 +54,27 @@
                                           }
                                       ],
                           "uninstall":  [
-                                            {
-                                                "action":  "delete",
-                                                "path":  "{pluginsDir}/SYNC_FireFX"
-                                            }
-                                        ]
+                              {
+                                  "action":  "delete",
+                                  "path":  "{pluginsDir}/SYNC_FireFX/SYNC_FireFX.auf2"
+                              },
+                              {
+                                  "action":  "delete",
+                                  "path":  "{pluginsDir}/SYNC_FireFX/README.md"
+                              },
+                              {
+                                  "action":  "delete",
+                                  "path":  "{pluginsDir}/SYNC_FireFX/LICENSE"
+                              },
+                              {
+                                  "action":  "delete",
+                                  "path":  "{pluginsDir}/SYNC_FireFX/THIRD_PARTY_NOTICES.md"
+                              },
+                              {
+                                  "action":  "delete",
+                                  "path":  "{pluginsDir}/SYNC_FireFX/ThirdParty/LICENSE.AviUtl2-SDK.txt"
+                              }
+                          ]
                       },
         "version":  [
                         {

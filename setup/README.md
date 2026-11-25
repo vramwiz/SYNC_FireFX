@@ -30,6 +30,6 @@ SYNC_FireFX/
     LICENSE.AviUtl2-SDK.txt
 ```
 
-カタログでのインストールはダウンロードと展開の後、`SYNC_FireFX` フォルダを `{pluginsDir}/SYNC_FireFX` へコピーします。アンインストールは同じフォルダを1工程で削除します。[AviUtl2 カタログの削除処理](https://github.com/Neosku/aviutl2-catalog/blob/main/src/utils/installer/fs-ops.ts)
+カタログでのインストールはダウンロードと展開の後、`SYNC_FireFX` フォルダを `{pluginsDir}/SYNC_FireFX` へコピーします。アンインストールでは ZIP からインストールしたファイルのみを個別に削除します。
 
 バッチは ZIP をローカルに作成します。GitHub のリリースを公開する際は、タグ `v1.0.0` に ZIP とカタログ JSON を添付します。
